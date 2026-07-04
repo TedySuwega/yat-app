@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, use, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,7 +16,7 @@ import {
   Luggage,
   Info,
 } from "lucide-react";
-import { getDestinationById } from "../../data/destinations";
+import type { Destination } from "../../data/destinations";
 
 interface DestinationPageProps {
   params: Promise<{ id: string }>;
@@ -25,12 +25,40 @@ interface DestinationPageProps {
 export default function DestinationDetailPage({ params }: DestinationPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const dest = getDestinationById(resolvedParams.id);
+  const [dest, setDest] = useState<Destination | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // States
   const [checkedItems, setCheckedItems] = useState<{ [key: string]: boolean }>({});
-  const [openDay, setOpenDay] = useState<number | null>(1); // Day 1 open by default
+  const [openDay, setOpenDay] = useState<number | null>(1);
   const [selectedTripId, setSelectedTripId] = useState<string>("");
+
+  useEffect(() => {
+    fetch(`/api/destinations/${resolvedParams.id}`)
+      .then((res) => {
+        if (res.ok) return res.json();
+        return null;
+      })
+      .then((data) => setDest(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [resolvedParams.id]);
+
+  useEffect(() => {
+    if (dest && dest.openTrips.length > 0 && !selectedTripId) {
+      const availableTrip =
+        dest.openTrips.find((t) => t.totalSlots - t.bookedSlots > 0) || dest.openTrips[0];
+      setSelectedTripId(availableTrip.id);
+    }
+  }, [dest, selectedTripId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-500 font-sans text-sm animate-pulse">Loading destination...</p>
+      </div>
+    );
+  }
 
   if (!dest) {
     return (
@@ -48,13 +76,6 @@ export default function DestinationDetailPage({ params }: DestinationPageProps) 
         </Link>
       </div>
     );
-  }
-
-  // Set default selected trip if not set
-  if (dest.openTrips.length > 0 && !selectedTripId) {
-    // Select first non-sold-out trip, or just first trip
-    const availableTrip = dest.openTrips.find((t) => t.totalSlots - t.bookedSlots > 0) || dest.openTrips[0];
-    setSelectedTripId(availableTrip.id);
   }
 
   const selectedTrip = dest.openTrips.find((t) => t.id === selectedTripId);

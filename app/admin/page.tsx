@@ -30,136 +30,71 @@ interface Booking {
   vibe: string;
   totalPrice: number;
   bookedAt: string;
-  status: string; // 'confirmed' | 'pinged'
+  status: string;
 }
 
 export default function AdminPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDest, setFilterDest] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
-  // Demo Bookings Data
-  const demoBookings: Booking[] = [
-    {
-      id: "TKT-BALI-2849",
-      destinationId: "bali-chill",
-      destinationTitle: "Bali Chill Vibes",
-      tripId: "bali-oct-10",
-      tripDates: "10 Oct - 14 Oct, 2026",
-      fullName: "Chloe Jenkins",
-      email: "chloe.j@example.com",
-      whatsapp: "+62 812-3456-7890",
-      seats: 2,
-      vibe: "Chill Explorer",
-      totalPrice: 698,
-      bookedAt: new Date(Date.now() - 3600000 * 4).toLocaleString(),
-      status: "pinged",
-    },
-    {
-      id: "TKT-BAJO-8492",
-      destinationId: "labuan-bajo",
-      destinationTitle: "Labuan Bajo Sailing",
-      tripId: "bajo-oct-18",
-      tripDates: "18 Oct - 21 Oct, 2026",
-      fullName: "Marcus Chen",
-      email: "marcus.c@example.com",
-      whatsapp: "+1 555-0199",
-      seats: 1,
-      vibe: "Adrenaline Junkie",
-      totalPrice: 549,
-      bookedAt: new Date(Date.now() - 3600000 * 24).toLocaleString(),
-      status: "confirmed",
-    },
-    {
-      id: "TKT-BROM-4819",
-      destinationId: "bromo-sunrise",
-      destinationTitle: "Mount Bromo Sunrise",
-      tripId: "bromo-nov-02",
-      tripDates: "02 Nov - 05 Nov, 2026",
-      fullName: "Sarah Connor",
-      email: "sarah.c@skyline.org",
-      whatsapp: "+44 7911 123456",
-      seats: 3,
-      vibe: "Adrenaline Junkie",
-      totalPrice: 657,
-      bookedAt: new Date(Date.now() - 3600000 * 48).toLocaleString(),
-      status: "confirmed",
-    },
-    {
-      id: "TKT-JOGJ-9321",
-      destinationId: "yogyakarta-culture",
-      destinationTitle: "Yogyakarta Cultural Stroll",
-      tripId: "jogja-nov-12",
-      tripDates: "12 Nov - 15 Nov, 2026",
-      fullName: "Daisuke Sato",
-      email: "dsato@travel.co.jp",
-      whatsapp: "+81 90-1234-5678",
-      seats: 1,
-      vibe: "Foodie",
-      totalPrice: 179,
-      bookedAt: new Date(Date.now() - 3600000 * 72).toLocaleString(),
-      status: "pinged",
-    },
-  ];
-
-  // Load bookings from LocalStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("yolo_trips_bookings");
-      if (stored) {
-        setBookings(JSON.parse(stored));
-      } else {
-        // Auto-seed with demo data for visual completeness on first visit
-        localStorage.setItem("yolo_trips_bookings", JSON.stringify(demoBookings));
-        setBookings(demoBookings);
+  const loadBookings = async () => {
+    try {
+      const res = await fetch("/api/bookings");
+      if (res.ok) {
+        const data = await res.json();
+        setBookings(data);
       }
-    }
-  }, []);
-
-  // Update storage helper
-  const updateStorage = (updatedList: Booking[]) => {
-    setBookings(updatedList);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("yolo_trips_bookings", JSON.stringify(updatedList));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Simulate WhatsApp Ping Status
-  const handlePing = (id: string) => {
-    const updated = bookings.map((b) => {
-      if (b.id === id) {
-        return { ...b, status: b.status === "pinged" ? "confirmed" : "pinged" };
+  useEffect(() => {
+    loadBookings();
+  }, []);
+
+  // Toggle WhatsApp ping status
+  const handlePing = async (id: string) => {
+    const booking = bookings.find((b) => b.id === id);
+    if (!booking) return;
+
+    const newStatus = booking.status === "pinged" ? "confirmed" : "pinged";
+
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setBookings((prev) => prev.map((b) => (b.id === id ? updated : b)));
+        showNotice("Booking status updated!");
       }
-      return b;
-    });
-    updateStorage(updated);
-    showNotice("Booking status updated!");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   // Delete Booking
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to cancel this booking? This will free up trip slots.")) {
-      const filtered = bookings.filter((b) => b.id !== id);
-      updateStorage(filtered);
-      showNotice("Booking cancelled successfully.");
-    }
-  };
-
-  // Reset to Demo Data
-  const handleResetDemo = () => {
-    if (confirm("Reset bookings list to default demo data?")) {
-      updateStorage(demoBookings);
-      showNotice("Demo bookings reloaded!");
-    }
-  };
-
-  // Clear All Bookings
-  const handleClearAll = () => {
-    if (confirm("WARNING: Delete all bookings? This cannot be undone.")) {
-      updateStorage([]);
-      showNotice("All bookings deleted.");
+      try {
+        const res = await fetch(`/api/bookings/${id}`, { method: "DELETE" });
+        if (res.ok) {
+          setBookings((prev) => prev.filter((b) => b.id !== id));
+          showNotice("Booking cancelled successfully.");
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -216,6 +151,22 @@ export default function AdminPage() {
     });
   }, [bookings, searchQuery, filterDest, filterStatus]);
 
+  const formatBookedAt = (dateStr: string) => {
+    try {
+      return new Date(dateStr).toLocaleString();
+    } catch {
+      return dateStr;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-500 font-sans text-sm animate-pulse">Loading bookings...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-10 pb-16 animate-pop">
       {/* Page Header */}
@@ -226,25 +177,16 @@ export default function AdminPage() {
             📊 Trip Registrations
           </h1>
           <p className="text-gray-500 font-sans text-sm">
-            View, search, update statuses, or simulate notifications for local testing purposes.
+            View, search, and update booking statuses from the database.
           </p>
         </div>
 
-        {/* Developer controls */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={handleResetDemo}
-            className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 font-sans font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> Reset Demo Data
-          </button>
-          <button
-            onClick={handleClearAll}
-            className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-sans font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5" /> Wipe Storage
-          </button>
-        </div>
+        <button
+          onClick={loadBookings}
+          className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 font-sans font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+        >
+          <RotateCcw className="w-3.5 h-3.5" /> Refresh
+        </button>
       </div>
 
       {/* Notifications Toast */}
@@ -352,7 +294,7 @@ export default function AdminPage() {
             <span className="text-4xl">📭</span>
             <h3 className="font-display font-bold text-lg text-brand-dark">No registrations found</h3>
             <p className="text-xs font-sans text-gray-400 max-w-xs leading-normal">
-              Either there are no bookings stored in localStorage matching your filter, or you wiped your database!
+              No bookings match your filter, or no bookings have been created yet.
             </p>
             <button
               onClick={() => {
@@ -388,7 +330,7 @@ export default function AdminPage() {
                       {/* Booking Code & Date */}
                       <td className="px-6 py-4.5">
                         <span className="font-mono font-bold text-brand-dark block">{b.id}</span>
-                        <span className="text-[10px] text-gray-400 block mt-0.5">{b.bookedAt}</span>
+                        <span className="text-[10px] text-gray-400 block mt-0.5">{formatBookedAt(b.bookedAt)}</span>
                       </td>
 
                       {/* Traveler Contact */}
@@ -469,7 +411,7 @@ export default function AdminPage() {
                   <div className="flex justify-between items-start border-b border-gray-100 pb-3">
                     <div>
                       <span className="font-mono font-bold text-sm text-brand-dark block">{b.id}</span>
-                      <span className="text-[10px] text-gray-400">{b.bookedAt}</span>
+                      <span className="text-[10px] text-gray-400">{formatBookedAt(b.bookedAt)}</span>
                     </div>
                     <span className="font-display font-black text-brand-orange text-lg">
                       ${b.totalPrice}

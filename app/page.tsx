@@ -1,14 +1,24 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, Compass, MapPin, Star, Calendar, Users, ArrowRight, Sparkles } from "lucide-react";
-import { destinations } from "./data/destinations";
+import type { Destination } from "./data/destinations";
 
 export default function HomePage() {
+  const [destinations, setDestinations] = useState<Destination[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVibe, setSelectedVibe] = useState<string>("All");
+
+  useEffect(() => {
+    fetch("/api/destinations")
+      .then((res) => res.json())
+      .then((data) => setDestinations(data))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const vibesList = [
     { label: "All Vibes ✨", value: "All" },
@@ -16,6 +26,7 @@ export default function HomePage() {
     { label: "Adrenaline Junkie ⚡", value: "Adrenaline Junkie" },
     { label: "Foodie 🍜", value: "Foodie" },
     { label: "Culture Nomad 🏛️", value: "Culture Nomad" },
+    { label: "Sports Fan 🏁", value: "Sports Fan" },
   ];
 
   // Filtered destinations
@@ -28,7 +39,7 @@ export default function HomePage() {
       const matchesVibe = selectedVibe === "All" || dest.vibe === selectedVibe;
       return matchesSearch && matchesVibe;
     });
-  }, [searchQuery, selectedVibe]);
+  }, [searchQuery, selectedVibe, destinations]);
 
   // All open trips from filtered destinations
   const openTripsList = useMemo(() => {
@@ -44,6 +55,14 @@ export default function HomePage() {
     // Sort by start date placeholder (could sort chronologically)
     return list;
   }, [filteredDestinations]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-500 font-sans text-sm animate-pulse">Loading destinations...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-16 md:gap-24 pb-16">

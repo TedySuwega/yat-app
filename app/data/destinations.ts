@@ -24,7 +24,7 @@ export interface Destination {
   reviewsCount: number;
   price: number; // Base price
   tags: string[];
-  vibe: "Chill Explorer" | "Adrenaline Junkie" | "Foodie" | "Culture Nomad";
+  vibe: "Chill Explorer" | "Adrenaline Junkie" | "Foodie" | "Culture Nomad" | "Sports Fan";
   vibeIcon: string;
   whatToBring: string[];
   highlights: string[];
@@ -176,7 +176,7 @@ export const destinations: Destination[] = [
     title: "Mount Bromo Sunrise",
     tagline: "Ride retro 4x4 Jeeps across volcanic sands to catch a surreal sunrise.",
     description: "Step onto another planet! Mount Bromo's volcanic landscape is absolutely mind-blowing. We'll ride in vintage 4x4 Jeeps in the middle of the night, witness a mystical golden sunrise lighting up the smoking crater, hike across the Sea of Sand, and climb the stairs directly to the edge of the active volcano.",
-    image: "https://images.unsplash.com/photo-1588668214407-6ea9a6d8c26e?auto=format&fit=crop&w=1200&h=800&q=80",
+    image: "https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?auto=format&fit=crop&w=1200&h=800&q=80",
     rating: 4.7,
     reviewsCount: 88,
     price: 219,
@@ -306,6 +306,144 @@ export const destinations: Destination[] = [
         price: 179,
         totalSlots: 16,
         bookedSlots: 12
+      }
+    ]
+  },
+  {
+    id: "motogp-sepang",
+    title: "MotoGP Sepang GP Weekend",
+    tagline: "Feel the roar at Sepang International Circuit — Malaysia's legendary MotoGP showdown.",
+    description: "Engines screaming, rubber burning, and 120,000 fans going absolutely wild — welcome to the Malaysian Grand Prix at Sepang! This open-trip package gets you a grandstand seat, airport transfers, 3 nights near the circuit, and a crew of fellow petrolheads to share the madness with. We'll hit the paddock walk, catch Friday practice, nail qualifying on Saturday, and scream through the main race on Sunday. Between sessions? Malaysian street food runs, night market crawls, and pre-race hype sessions with the squad.",
+    image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=1200&h=800&q=80",
+    rating: 4.9,
+    reviewsCount: 78,
+    price: 499,
+    tags: ["🏁 MotoGP", "🇲🇾 Malaysia", "🔥 Race Weekend"],
+    vibe: "Sports Fan",
+    vibeIcon: "🏁",
+    whatToBring: [
+      "Earplugs (trust us, you'll need them!)",
+      "Sunscreen & cap for open grandstands",
+      "Light rain jacket (Sepang weather is unpredictable)",
+      "Portable charger for all the race-day content",
+      "Team merch or national flag for the vibe",
+      "Comfortable walking shoes for the circuit grounds"
+    ],
+    highlights: [
+      "Grandstand seat for the full MotoGP race day (Sunday)",
+      "Paddock & pit lane walk access on Saturday",
+      "Friday free practice + Saturday qualifying sessions",
+      "Kuala Lumpur night market food crawl with the crew"
+    ],
+    itinerary: [
+      {
+        day: 1,
+        title: "Touch Down KL & Sepang Circuit Orientation",
+        details: "Land in Kuala Lumpur! We pick you up and check into our hotel near Sepang International Circuit. Evening welcome dinner with the crew, race weekend briefing, and a chill session planning our grandstand strategy for the big day."
+      },
+      {
+        day: 2,
+        title: "Friday Practice Day at Sepang",
+        details: "First engines fire up! We head to the circuit for Moto3, Moto2, and MotoGP free practice sessions. Feel the speed up close, explore the fan zones, grab merch, and soak in the paddock atmosphere. Post-session group dinner at a local mamak spot."
+      },
+      {
+        day: 3,
+        title: "Saturday Qualifying & Paddock Walk",
+        details: "Qualifying day — watch riders push for pole position in every class! Our package includes paddock walk access so you can get closer to the teams and bikes. Evening is free for optional KL city exploration or rest up for race day."
+      },
+      {
+        day: 4,
+        title: "RACE DAY — Malaysian Grand Prix! 🏁",
+        details: "THE main event! Grandstand seats locked in, engines at full song, and 44 laps of pure chaos. Cheer with the crew, witness the podium ceremony live, then celebrate (or commiserate) at our post-race dinner before airport drops the next morning."
+      }
+    ],
+    openTrips: [
+      {
+        id: "sepang-oct-24",
+        startDate: "24 Oct",
+        endDate: "27 Oct",
+        year: "2026",
+        price: 499,
+        totalSlots: 20,
+        bookedSlots: 11
+      },
+      {
+        id: "sepang-nov-07",
+        startDate: "07 Nov",
+        endDate: "10 Nov",
+        year: "2026",
+        price: 499,
+        totalSlots: 20,
+        bookedSlots: 5
+      }
+    ]
+  },
+  {
+    id: "motogp-mandalika",
+    title: "MotoGP Mandalika GP Weekend",
+    tagline: "Sun, sea, and screaming prototypes at Indonesia's epic Mandalika street circuit.",
+    description: "MotoGP on home soil hits different! The Pertamina Grand Prix of Indonesia at Mandalika International Street Circuit in Lombok is one of the most scenic and intense races on the calendar. Our open-trip package covers your grandstand ticket, beachside accommodation, circuit transfers, and a squad of hype mates to experience it all. Think turquoise waters by day, 350 km/h flybys by afternoon, and nasi campur feasts by night. This is Indonesian motorsport culture at its absolute peak.",
+    image: "https://images.unsplash.com/photo-1541443131876-44b03de101c5?auto=format&fit=crop&w=1200&h=800&q=80",
+    rating: 4.8,
+    reviewsCount: 94,
+    price: 449,
+    tags: ["🏁 MotoGP", "🇮🇩 Indonesia", "🏝️ Lombok"],
+    vibe: "Sports Fan",
+    vibeIcon: "🏁",
+    whatToBring: [
+      "Earplugs and sun protection (open-air circuit!)",
+      "Swimwear for Kuta Lombok beach sessions",
+      "Indonesia team merch or rider flags",
+      "Reusable water bottle (it gets HOT)",
+      "Power bank for race-day photos and clips",
+      "Cash for local warung food and souvenirs"
+    ],
+    highlights: [
+      "Grandstand seat for the full MotoGP race on Sunday",
+      "Paddock walk & fan zone access on Saturday",
+      "Friday practice and Saturday qualifying sessions",
+      "Beach sunset session at Kuta Lombok with the crew"
+    ],
+    itinerary: [
+      {
+        day: 1,
+        title: "Welcome to Lombok & Beach Crew Meetup",
+        details: "Arrive at Lombok International Airport! Transfer to our beachside accommodation near Kuta Lombok. Welcome dinner, race weekend briefing, and a sunset chill on the sand to meet your fellow MotoGP squad before the action begins."
+      },
+      {
+        day: 2,
+        title: "Friday Practice — First Roar at Mandalika",
+        details: "Circuit day one! Shuttle to Mandalika International Street Circuit for Moto3, Moto2, and MotoGP free practice. Explore the fan zones, snap pics with the Lombok coastline backdrop, and grab official GP merch. Evening local seafood BBQ with the crew."
+      },
+      {
+        day: 3,
+        title: "Saturday Qualifying & Paddock Walk",
+        details: "Qualifying day at Mandalika — watch riders battle for grid position with the ocean on one side and volcanoes on the other. Paddock walk included! Afternoon free for optional surf lesson or scooter ride around south Lombok."
+      },
+      {
+        day: 4,
+        title: "RACE DAY — Indonesian Grand Prix! 🏁",
+        details: "The moment we've been waiting for! Your grandstand seat is ready for 44 laps of home-soil MotoGP madness. Scream, cheer, film the flybys, and witness the podium ceremony. Post-race celebration dinner before transfers back to the airport."
+      }
+    ],
+    openTrips: [
+      {
+        id: "mandalika-oct-17",
+        startDate: "17 Oct",
+        endDate: "20 Oct",
+        year: "2026",
+        price: 449,
+        totalSlots: 24,
+        bookedSlots: 16
+      },
+      {
+        id: "mandalika-oct-31",
+        startDate: "31 Oct",
+        endDate: "03 Nov",
+        year: "2026",
+        price: 449,
+        totalSlots: 24,
+        bookedSlots: 8
       }
     ]
   }

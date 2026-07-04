@@ -2,7 +2,6 @@
 
 import React, { useState, use, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   User,
   Mail,
@@ -18,7 +17,7 @@ import {
   QrCode,
   ShieldCheck,
 } from "lucide-react";
-import { getDestinationById, getOpenTripById } from "../../data/destinations";
+import type { Destination, OpenTrip } from "../../data/destinations";
 
 interface BookPageProps {
   params: Promise<{ id: string }>;
@@ -28,13 +27,14 @@ interface BookPageProps {
 export default function BookTripPage({ params, searchParams }: BookPageProps) {
   const resolvedParams = use(params);
   const resolvedSearchParams = use(searchParams);
-  const router = useRouter();
 
   const destId = resolvedParams.id;
   const tripId = resolvedSearchParams.tripId as string;
 
-  const dest = getDestinationById(destId);
-  const tripData = getOpenTripById(tripId);
+  const [dest, setDest] = useState<Destination | null>(null);
+  const [trip, setTrip] = useState<OpenTrip | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitError, setSubmitError] = useState("");
 
   // States
   const [step, setStep] = useState(1);
@@ -54,16 +54,46 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
     { name: "Adrenaline Junkie", icon: "⚡", desc: "Volcanic hikes, deep snorkeling, surfing, and road trips." },
     { name: "Foodie", icon: "🍜", desc: "Local culinary stalls, midnight food runs, and culinary masterclasses." },
     { name: "Culture Nomad", icon: "🏛️", desc: "Ancient temple crawls, handicraft sessions, and history lessons." },
+    { name: "Sports Fan", icon: "🏁", desc: "Live race weekends, stadium vibes, and epic sporting events." },
   ];
 
   // Pre-select the destination vibe if available
   useEffect(() => {
-    if (dest) {
-      setSelectedVibe(dest.vibe);
-    }
-  }, [dest]);
+    async function loadData() {
+      try {
+        const [destRes, tripRes] = await Promise.all([
+          fetch(`/api/destinations/${destId}`),
+          tripId ? fetch(`/api/trips/${tripId}`) : Promise.resolve(null),
+        ]);
 
-  if (!dest || !tripData) {
+        if (destRes.ok) {
+          const destData = await destRes.json();
+          setDest(destData);
+          setSelectedVibe(destData.vibe);
+        }
+
+        if (tripRes && tripRes.ok) {
+          const tripData = await tripRes.json();
+          setTrip(tripData);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [destId, tripId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <p className="text-gray-500 font-sans text-sm animate-pulse">Loading trip details...</p>
+      </div>
+    );
+  }
+
+  if (!dest || !trip) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 bg-white border border-amber-100 rounded-3xl gap-4">
         <span className="text-4xl">🎒</span>
@@ -81,7 +111,6 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
     );
   }
 
-  const { trip } = tripData;
   const totalPrice = dest.price * seats;
 
   // Form Validations
@@ -96,39 +125,38 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
     setStep((prev) => prev - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError("");
 
-    // Generate Booking ID
-    const randomCode = Math.floor(1000 + Math.random() * 9000);
-    const generatedId = `TKT-${dest.id.substring(0, 4).toUpperCase()}-${randomCode}`;
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripId: trip.id,
+          destinationId: dest.id,
+          fullName,
+          email,
+          whatsapp,
+          seats,
+          vibe: selectedVibe,
+          totalPrice,
+        }),
+      });
 
-    const newBooking = {
-      id: generatedId,
-      destinationId: dest.id,
-      destinationTitle: dest.title,
-      tripId: trip.id,
-      tripDates: `${trip.startDate} - ${trip.endDate}, ${trip.year}`,
-      fullName,
-      email,
-      whatsapp,
-      seats,
-      vibe: selectedVibe,
-      totalPrice,
-      bookedAt: new Date().toLocaleString(),
-      status: "confirmed", // 'confirmed' by default in local storage
-    };
+      const data = await res.json();
 
-    // Save to local storage
-    if (typeof window !== "undefined") {
-      const existingBookingsStr = localStorage.getItem("yolo_trips_bookings");
-      const existingBookings = existingBookingsStr ? JSON.parse(existingBookingsStr) : [];
-      existingBookings.push(newBooking);
-      localStorage.setItem("yolo_trips_bookings", JSON.stringify(existingBookings));
+      if (!res.ok) {
+        setSubmitError(data.error || "Booking failed. Please try again.");
+        return;
+      }
+
+      setBookingId(data.bookingId);
+      setIsSuccess(true);
+    } catch {
+      setSubmitError("Network error. Please try again.");
     }
-
-    setBookingId(generatedId);
-    setIsSuccess(true);
   };
 
   return (
@@ -457,6 +485,9 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
             )}
 
             {/* Navigation buttons */}
+            {submitError && (
+              <p className="text-red-500 text-sm font-sans font-medium text-center">{submitError}</p>
+            )}
             <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
               {step > 1 ? (
                 <button
