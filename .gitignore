@@ -39,3 +39,60 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sqlite database
+data/yolotrips.db
+data/*.db-shm
+data/*.db-wal
+
+# user uploads
+public/uploads/
+
+# ─── AI Agent & Coding Assistant Files ───────────────────────────────────────
+# Claude / Anthropic
+CLAUDE.md
+.claude/
+
+# Cursor
+.cursorrules
+.cursorignore
+.cursor/
+
+# GitHub Copilot
+.github/copilot-instructions.md
+
+# Gemini / Antigravity
+AGENTS.md
+.gemini/
+
+# Windsurf / Codeium
+.windsurfrules
+.codeium/
+
+# General AI context files
+.aiprompt
+.ai-context*
+ai-instructions*
+
+# ─── Private Markdown Docs ───────────────────────────────────────────────────
+# Internal planning / roadmap docs — share manually, not via git
+PRODUCTION_ROADMAP.md
+ROADMAP.md
+TODO.md
+NOTES.md
+PRIVATE_*.md
+*_PRIVATE.md
+*_INTERNAL.md
+
+# ─── Local Dev / OS ──────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.local.md
+
+# ─── Secrets & Keys ──────────────────────────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets
