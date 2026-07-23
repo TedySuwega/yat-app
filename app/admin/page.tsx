@@ -15,7 +15,9 @@ import {
   FileSpreadsheet,
   CheckCircle,
   ExternalLink,
+  LogOut,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface Booking {
   id: string;
@@ -34,6 +36,7 @@ interface Booking {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,6 +47,10 @@ export default function AdminPage() {
   const loadBookings = async () => {
     try {
       const res = await fetch("/api/bookings");
+      if (res.status === 401) {
+        router.push("/login?from=/admin");
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setBookings(data);
@@ -52,6 +59,16 @@ export default function AdminPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -181,12 +198,20 @@ export default function AdminPage() {
           </p>
         </div>
 
-        <button
-          onClick={loadBookings}
-          className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 font-sans font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
-        >
-          <RotateCcw className="w-3.5 h-3.5" /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadBookings}
+            className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 font-sans font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Refresh
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 border border-red-100 hover:bg-red-50 text-red-600 font-sans font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Logout
+          </button>
+        </div>
       </div>
 
       {/* Notifications Toast */}

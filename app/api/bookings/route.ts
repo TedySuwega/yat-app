@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getDb } from "@/lib/db";
 import { type DbBookingEnriched, type DbOpenTrip, mapBooking } from "@/lib/mappers";
+import { CreateBookingSchema, formatZodErrors } from "@/lib/validations";
+import { requireAdmin } from "@/lib/auth";
 
 const BOOKINGS_QUERY = `
   SELECT
@@ -17,18 +19,32 @@ const BOOKINGS_QUERY = `
 `;
 
 export async function GET() {
+  const { unauthorized } = await requireAdmin();
+  if (unauthorized) return unauthorized;
+
   const db = getDb();
   const bookings = db.prepare(BOOKINGS_QUERY).all() as DbBookingEnriched[];
   return NextResponse.json(bookings.map(mapBooking));
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { tripId, fullName, email, whatsapp, seats, vibe, totalPrice, destinationId } = body;
-
-  if (!tripId || !fullName || !email || !whatsapp || !seats || !destinationId) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
+
+  const parsed = CreateBookingSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", details: formatZodErrors(parsed.error) },
+      { status: 400 }
+    );
+  }
+
+  const { tripId, fullName, email, whatsapp, seats, vibe, totalPrice, destinationId } =
+    parsed.data;
 
   const db = getDb();
 

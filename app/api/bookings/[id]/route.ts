@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { type DbBooking, type DbBookingEnriched, mapBooking } from "@/lib/mappers";
+import { UpdateBookingStatusSchema, formatZodErrors } from "@/lib/validations";
+import { requireAdmin } from "@/lib/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -20,13 +22,27 @@ const BOOKING_BY_ID_QUERY = `
 `;
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  const { id } = await params;
-  const body = await req.json();
-  const { status } = body;
+  const { unauthorized } = await requireAdmin();
+  if (unauthorized) return unauthorized;
 
-  if (!status || !["confirmed", "pinged", "cancelled"].includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  const { id } = await params;
+
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
+
+  const parsed = UpdateBookingStatusSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Validation failed", details: formatZodErrors(parsed.error) },
+      { status: 400 }
+    );
+  }
+
+  const { status } = parsed.data;
 
   const db = getDb();
 
@@ -45,6 +61,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
+  const { unauthorized } = await requireAdmin();
+  if (unauthorized) return unauthorized;
+
   const { id } = await params;
   const db = getDb();
 
