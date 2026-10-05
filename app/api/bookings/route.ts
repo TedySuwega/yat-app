@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { type DbBookingEnriched, type DbOpenTrip, mapBooking } from "@/lib/mappers";
 import { CreateBookingSchema, formatZodErrors } from "@/lib/validations";
 import { requireAdmin } from "@/lib/auth";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 
 const BOOKINGS_QUERY = `
   SELECT
@@ -89,6 +90,19 @@ export async function POST(req: NextRequest) {
   });
 
   createBooking();
+
+  // Fetch destination title for email template
+  const dest = db.prepare("SELECT title FROM destinations WHERE id = ?").get(destinationId) as { title: string } | undefined;
+  
+  // Trigger email asynchronously (non-blocking)
+  sendBookingConfirmationEmail({
+    bookingId,
+    fullName,
+    email,
+    destinationTitle: dest?.title || destinationId,
+    seats,
+    totalPrice,
+  });
 
   return NextResponse.json({ bookingId }, { status: 201 });
 }

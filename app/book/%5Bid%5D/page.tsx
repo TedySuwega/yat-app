@@ -153,6 +153,23 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
       }
 
       setBookingId(data.bookingId);
+
+      // Trigger Midtrans Payment Init
+      try {
+        const payRes = await fetch("/api/payment/create-transaction", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bookingId: data.bookingId }),
+        });
+        const payData = await payRes.json();
+        
+        if (payData.isMock) {
+          console.log("[Midtrans Mock] Payment simulated automatically");
+        }
+      } catch (payErr) {
+        console.error("Payment init error:", payErr);
+      }
+
       setIsSuccess(true);
     } catch {
       setSubmitError("Network error. Please try again.");

@@ -74,8 +74,10 @@ AGENTS.md
 .ai-context*
 ai-instructions*
 
-# ─── Private Markdown Docs ───────────────────────────────────────────────────
-# Internal planning / roadmap docs — share manually, not via git
+# ─── Private Markdown Docs & Guides ──────────────────────────────────────────
+# Internal planning / roadmap / testing docs — share manually, not via git
+doc/
+TESTING_GUIDE.md
 PRODUCTION_ROADMAP.md
 ROADMAP.md
 TODO.md
