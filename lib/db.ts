@@ -87,10 +87,11 @@ export function initDbSchemaAndSeeds(db: Database.Database) {
       .get() as { count: number } | undefined;
 
     if (!adminCountRow || adminCountRow.count === 0) {
+      const initialAdminPassword = process.env.ADMIN_INITIAL_PASSWORD || "admin123";
       const insertAdmin = db.prepare(`
         INSERT OR REPLACE INTO admin_users (email, password_hash) VALUES (?, ?)
       `);
-      insertAdmin.run("admin@yolotrips.com", hashPassword("admin123"));
+      insertAdmin.run("admin@yolotrips.com", hashPassword(initialAdminPassword));
     }
 
     // 4. Check and seed sample dummy bookings

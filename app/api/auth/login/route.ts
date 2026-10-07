@@ -41,12 +41,7 @@ export async function POST(req: NextRequest) {
       adminUser = { id: admin.id, email: admin.email };
     }
   } catch (err) {
-    console.warn("[API /api/auth/login] SQLite error, checking default fallback admin credentials:", err);
-  }
-
-  // Fallback default admin credentials (useful for serverless preview / fallback)
-  if (!adminUser && cleanEmail === "admin@yolotrips.com" && password === "admin123") {
-    adminUser = { id: 1, email: "admin@yolotrips.com" };
+    console.warn("[API /api/auth/login] SQLite error querying admin_users:", err);
   }
 
   if (!adminUser) {
