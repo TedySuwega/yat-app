@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getIronSession } from "iron-session";
-import { defaultSession, type SessionData, getSessionOptions } from "@/lib/session";
+import { type SessionData, getSessionOptions } from "@/lib/session";
 
 function isAdminApiRoute(pathname: string, method: string) {
   if (pathname === "/api/bookings" && method === "GET") return true;
   if (pathname.startsWith("/api/bookings/") && method !== "GET") return true;
+  if (pathname.startsWith("/api/upload")) return true;
   return false;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const response = NextResponse.next();
@@ -49,6 +50,15 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
+export { proxy as middleware };
+
 export const config = {
-  matcher: ["/admin/:path*", "/login", "/api/bookings", "/api/bookings/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/login",
+    "/api/bookings",
+    "/api/bookings/:path*",
+    "/api/upload",
+    "/api/upload/:path*",
+  ],
 };

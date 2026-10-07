@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env*
+data/*.db
+data/*.db-shm
+data/*.db-wal
+public/uploads/*
+!public/uploads/.gitkeep
+npm-debug.log*
+Dockerfile
+docker-compose.yml
+.DS_Store

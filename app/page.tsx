@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Search, Compass, MapPin, Star, Calendar, Users, ArrowRight, Sparkles } from "lucide-react";
-import type { Destination } from "./data/destinations";
+import { destinations as fallbackDestinations, type Destination } from "./data/destinations";
 
 export default function HomePage() {
   const [destinations, setDestinations] = useState<Destination[]>([]);
@@ -14,9 +14,21 @@ export default function HomePage() {
 
   useEffect(() => {
     fetch("/api/destinations")
-      .then((res) => res.json())
-      .then((data) => setDestinations(data))
-      .catch(console.error)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch destinations");
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDestinations(data);
+        } else {
+          setDestinations(fallbackDestinations);
+        }
+      })
+      .catch((err) => {
+        console.warn("Using fallback destinations on client:", err);
+        setDestinations(fallbackDestinations);
+      })
       .finally(() => setLoading(false));
   }, []);
 

@@ -17,7 +17,7 @@ import {
   QrCode,
   ShieldCheck,
 } from "lucide-react";
-import type { Destination, OpenTrip } from "../../data/destinations";
+import { destinations as fallbackDestinations, type Destination, type OpenTrip } from "../../data/destinations";
 
 interface BookPageProps {
   params: Promise<{ id: string }>;
@@ -60,6 +60,9 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
   // Pre-select the destination vibe if available
   useEffect(() => {
     async function loadData() {
+      let resolvedDest: Destination | null = null;
+      let resolvedTrip: OpenTrip | null = null;
+
       try {
         const [destRes, tripRes] = await Promise.all([
           fetch(`/api/destinations/${destId}`),
@@ -67,20 +70,36 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
         ]);
 
         if (destRes.ok) {
-          const destData = await destRes.json();
-          setDest(destData);
-          setSelectedVibe(destData.vibe);
+          resolvedDest = await destRes.json();
         }
 
         if (tripRes && tripRes.ok) {
-          const tripData = await tripRes.json();
-          setTrip(tripData);
+          resolvedTrip = await tripRes.json();
         }
       } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+        console.warn("API load failed, using fallback:", err);
       }
+
+      // Fallbacks
+      if (!resolvedDest) {
+        resolvedDest = fallbackDestinations.find((d) => d.id === destId) || null;
+      }
+
+      if (!resolvedTrip && resolvedDest) {
+        if (tripId) {
+          resolvedTrip = resolvedDest.openTrips.find((t) => t.id === tripId) || null;
+        }
+        if (!resolvedTrip && resolvedDest.openTrips.length > 0) {
+          resolvedTrip = resolvedDest.openTrips[0];
+        }
+      }
+
+      setDest(resolvedDest);
+      if (resolvedDest) {
+        setSelectedVibe(resolvedDest.vibe);
+      }
+      setTrip(resolvedTrip);
+      setLoading(false);
     }
     loadData();
   }, [destId, tripId]);

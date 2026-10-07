@@ -16,7 +16,7 @@ import {
   Luggage,
   Info,
 } from "lucide-react";
-import type { Destination } from "../../data/destinations";
+import { destinations as fallbackDestinations, type Destination } from "../../data/destinations";
 
 interface DestinationPageProps {
   params: Promise<{ id: string }>;
@@ -37,10 +37,21 @@ export default function DestinationDetailPage({ params }: DestinationPageProps) 
     fetch(`/api/destinations/${resolvedParams.id}`)
       .then((res) => {
         if (res.ok) return res.json();
-        return null;
+        throw new Error("Not found");
       })
-      .then((data) => setDest(data))
-      .catch(console.error)
+      .then((data) => {
+        if (data && data.id) {
+          setDest(data);
+        } else {
+          const fallback = fallbackDestinations.find((d) => d.id === resolvedParams.id);
+          setDest(fallback || null);
+        }
+      })
+      .catch((err) => {
+        console.warn("Using fallback destination on client:", err);
+        const fallback = fallbackDestinations.find((d) => d.id === resolvedParams.id);
+        setDest(fallback || null);
+      })
       .finally(() => setLoading(false));
   }, [resolvedParams.id]);
 

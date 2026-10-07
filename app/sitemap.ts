@@ -1,21 +1,35 @@
 import { MetadataRoute } from "next";
 import { getDb } from "@/lib/db";
 import { type DbDestination } from "@/lib/mappers";
+import { destinations as staticDestinations } from "@/app/data/destinations";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-  let destinations: DbDestination[] = [];
+  let destinationIds: { id: string; lastModified: Date }[] = [];
   try {
     const db = getDb();
-    destinations = db.prepare("SELECT id, created_at FROM destinations").all() as DbDestination[];
+    const destinations = db.prepare("SELECT id, created_at FROM destinations").all() as DbDestination[];
+    if (destinations && destinations.length > 0) {
+      destinationIds = destinations.map((d) => ({
+        id: d.id,
+        lastModified: d.created_at ? new Date(d.created_at) : new Date(),
+      }));
+    }
   } catch (e) {
-    console.error("Error generating sitemap destination links:", e);
+    console.warn("Notice generating sitemap from DB, using fallback destinations:", e);
   }
 
-  const destinationUrls = destinations.map((dest) => ({
+  if (destinationIds.length === 0) {
+    destinationIds = staticDestinations.map((d) => ({
+      id: d.id,
+      lastModified: new Date(),
+    }));
+  }
+
+  const destinationUrls = destinationIds.map((dest) => ({
     url: `${baseUrl}/destination/${dest.id}`,
-    lastModified: dest.created_at ? new Date(dest.created_at) : new Date(),
+    lastModified: dest.lastModified,
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));

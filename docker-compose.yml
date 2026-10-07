@@ -1,0 +1,23 @@
+services:
+  yolotrips:
+    build: .
+    container_name: yolotrips-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - ADMIN_SESSION_SECRET=dev-secret-key-min-32-chars-long-yolotrips-production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - FONNTE_TOKEN=your-fonnte-token-here
+      - RESEND_API_KEY=re_dummy_key_mock_fallback
+      - MIDTRANS_SERVER_KEY=SB-Mid-server-xxxxxxxxxxxx
+      - MIDTRANS_CLIENT_KEY=SB-Mid-client-xxxxxxxxxxxx
+      - MIDTRANS_IS_PRODUCTION=false
+    volumes:
+      - yolo_db_data:/app/data
+      - yolo_uploads:/app/public/uploads
+    restart: always
+
+volumes:
+  yolo_db_data:
+  yolo_uploads:
