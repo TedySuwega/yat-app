@@ -41,18 +41,30 @@ export async function POST(req: NextRequest) {
       adminUser = { id: admin.id, email: admin.email };
     }
   } catch (err) {
-    console.warn("[API /api/auth/login] SQLite error querying admin_users:", err);
+    console.error("[API /api/auth/login] SQLite error querying admin_users:", err);
+    return NextResponse.json(
+      { error: "Could not reach the admin database. Please try again." },
+      { status: 500 }
+    );
   }
 
   if (!adminUser) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
   }
 
-  const session = await getSession();
-  session.adminId = adminUser.id;
-  session.email = adminUser.email;
-  session.isLoggedIn = true;
-  await session.save();
+  try {
+    const session = await getSession();
+    session.adminId = adminUser.id;
+    session.email = adminUser.email;
+    session.isLoggedIn = true;
+    await session.save();
+  } catch (err) {
+    console.error("[API /api/auth/login] Failed to save admin session:", err);
+    return NextResponse.json(
+      { error: "Could not start the admin session. Please try again." },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({ success: true, email: adminUser.email });
 }

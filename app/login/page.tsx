@@ -14,32 +14,46 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    // Read the live form values. Browser autofill fills the inputs without
+    // updating React state, so the controlled state can still be empty.
+    const formData = new FormData(e.currentTarget);
+    const emailValue = String(formData.get("email") ?? "");
+    const passwordValue = String(formData.get("password") ?? "");
 
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: emailValue, password: passwordValue }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      try {
+        data = raw ? (JSON.parse(raw) as { error?: string }) : {};
+      } catch {
+        setError("The server returned an unexpected response. Please try again.");
+        return;
+      }
 
       if (!res.ok) {
         setError(data.error || "Login failed. Please try again.");
         return;
       }
-
-      router.push(from);
-      router.refresh();
     } catch {
       setError("Network error. Please try again.");
+      return;
     } finally {
       setLoading(false);
     }
+
+    router.push(from);
+    router.refresh();
   };
 
   return (
@@ -59,6 +73,7 @@ function LoginForm() {
         </label>
         <input
           id="email"
+          name="email"
           type="email"
           autoComplete="email"
           required
@@ -75,6 +90,7 @@ function LoginForm() {
         </label>
         <input
           id="password"
+          name="password"
           type="password"
           autoComplete="current-password"
           required
