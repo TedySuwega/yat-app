@@ -287,16 +287,10 @@ export default function BookTripPage({ params, searchParams }: BookPageProps) {
             </div>
 
             {/* Success Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mt-2">
-              <Link
-                href="/admin"
-                className="flex-1 px-6 py-3.5 border border-brand-teal hover:bg-brand-teal/5 text-brand-teal font-sans font-bold text-sm rounded-2xl transition-colors text-center"
-              >
-                Go to Admin view 📊
-              </Link>
+            <div className="w-full max-w-md mt-2">
               <Link
                 href="/"
-                className="flex-1 px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-white font-sans font-bold text-sm rounded-2xl transition-all duration-200 shadow-md shadow-brand-orange/20 text-center"
+                className="block px-6 py-3.5 bg-brand-orange hover:bg-brand-orange-hover text-white font-sans font-bold text-sm rounded-2xl transition-all duration-200 shadow-md shadow-brand-orange/20 text-center"
               >
                 Back to Explore 🌴
               </Link>

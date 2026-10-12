@@ -69,7 +69,6 @@ export default function Footer() {
             <div className="grid grid-cols-2 gap-3 text-sm font-sans text-gray-400">
               <Link href="/" className="hover:text-brand-orange transition-colors">Explore Spots</Link>
               <Link href="/#open-trips" className="hover:text-brand-orange transition-colors">Open Trips</Link>
-              <Link href="/admin" className="hover:text-brand-orange transition-colors">Admin View</Link>
               <a href="#about" className="hover:text-brand-orange transition-colors">About Us</a>
               <a href="#faqs" className="hover:text-brand-orange transition-colors">Trip FAQs</a>
               <a href="#reviews" className="hover:text-brand-orange transition-colors">Vibe Checks</a>

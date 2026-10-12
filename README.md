@@ -4,6 +4,78 @@ A complete, ready-to-run, vibrant, and casual Travel Web Application designed sp
 
 ---
 
+## Alur bisnis
+
+Traveler dan admin adalah dua peran yang terpisah. Traveler selesai setelah dapat tiket. Admin tidak ikut join trip; admin mengambil alih dari dashboard untuk ping WhatsApp dan mengelola registrasi.
+
+### Traveler — join trip sampai tiket
+
+```mermaid
+flowchart TD
+  explore[Explore destinasi dan open trip] --> detail[Buka detail destinasi]
+  detail --> pilih[Pilih tanggal open trip]
+  pilih --> data[Isi nama, email, WhatsApp, jumlah kursi]
+  data --> vibe[Pilih vibe]
+  vibe --> review[Review harga dan konfirmasi]
+  review --> simpan[Booking tersimpan, kursi berkurang]
+  simpan --> bayar[Pembayaran mock Midtrans]
+  bayar --> email[Email konfirmasi, mock jika Resend belum diisi]
+  email --> tiket[Tiket dengan kode booking dan QR mock]
+  tiket --> selesai[Kembali ke Explore]
+```
+
+Yang traveler bawa pulang: kode booking seperti `TKT-BALI-1234` dan QR mock. Status di database saat ini `confirmed`, yang di dashboard tampil sebagai **Awaiting**. WhatsApp belum terkirim di langkah ini.
+
+### Admin — operasional setelah ada tiket
+
+```mermaid
+flowchart TD
+  login[Login crew di /login] --> dashboard[Admin dashboard]
+  dashboard --> lihat[Lihat registrasi baru berstatus Awaiting]
+  lihat --> ping[Auto Ping WA via Fonnte]
+  lihat --> manual[Buka chat wa.me secara manual]
+  lihat --> batal[Batalkan booking, kursi kembali]
+  ping --> status[Status jadi Pinged]
+  status --> pesan[WhatsApp konfirmasi terkirim, atau tercatat di terminal jika token Fonnte masih mock]
+```
+
+Login admin terpisah dari traveler. Akun lokal bawaan: `admin@yolotrips.com` / `admin123`.
+
+### Serah terima
+
+```mermaid
+sequenceDiagram
+  actor Traveler
+  participant App
+  actor Admin
+  participant WhatsApp
+
+  Traveler->>App: Join trip dan konfirmasi
+  App->>App: Simpan booking, kurangi kursi
+  App-->>Traveler: Tiket dan QR mock
+  Admin->>App: Buka dashboard, pilih booking Awaiting
+  Admin->>App: Auto Ping WA
+  App->>WhatsApp: Kirim konfirmasi registrasi
+  App-->>Admin: Status berubah menjadi Pinged
+```
+
+### Status booking
+
+```mermaid
+stateDiagram-v2
+  [*] --> Awaiting: traveler selesai join trip
+  Awaiting --> Pinged: admin Auto Ping WA
+  Pinged --> Awaiting: admin toggle status
+  Awaiting --> Batal: admin hapus booking
+  Pinged --> Batal: admin hapus booking
+```
+
+Di database, Awaiting disimpan sebagai `confirmed` dan Pinged sebagai `pinged`. Batal menghapus booking dan mengembalikan kursi.
+
+Traveler tidak melihat pintu admin. Navbar dan footer tidak menautkan dashboard. Crew membuka `http://localhost:3000/admin` langsung. Kalau belum login, aplikasi mengarahkan ke `/login`.
+
+---
+
 ## 🎨 Design System & Aesthetics
 - **Theme Palette**: Pastel Sand background (`#FCF8F2`), Sunset Orange accents (`#FF6B4A`), and Deep Ocean Teal details (`#14B8A6`).
 - **Typography**: Playful yet clean Google Fonts (`Plus Jakarta Sans` for body, `Outfit` for display and headlines).
@@ -29,7 +101,7 @@ A complete, ready-to-run, vibrant, and casual Travel Web Application designed sp
    - **Step 1**: Contact info (Name, Email, WhatsApp) and seats count controls.
    - **Step 2**: Visual Vibe Selection card grid.
    - **Step 3**: Ticket summary calculation (base price × seats) with purchase confirmation.
-   - **Booking Success Ticket**: Confetti animation, mock ticket layout with QR code, and direct booking references (e.g. `TKT-BALI-1234`). Stores bookings locally.
+   - **Booking Success Ticket**: Confetti animation, mock ticket layout with QR code, and direct booking references (e.g. `TKT-BALI-1234`). Traveler stops here. WhatsApp confirmation is sent later by admin.
 
 4. **Interactive Admin Dashboard (`app/admin/page.tsx`)**:
    - Real-time aggregations (Total Bookings, Revenue, Tickets Sold, Most Popular Vibe).
@@ -87,5 +159,5 @@ npm run dev
 
 ### 4. Visit the Application
 Open your web browser and navigate to:
-- **Client App**: [http://localhost:3000](http://localhost:3000)
-- **Admin Dashboard**: [http://localhost:3000/admin](http://localhost:3000/admin) (Will pre-populate with 4 demo records if local storage is clean, enabling instant testing!).
+- **Traveler app**: [http://localhost:3000](http://localhost:3000)
+- **Admin login**: [http://localhost:3000/login](http://localhost:3000/login) then [http://localhost:3000/admin](http://localhost:3000/admin). Dashboard tanpa sesi admin akan kembali ke login.

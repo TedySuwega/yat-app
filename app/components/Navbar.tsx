@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Calendar, ShieldAlert, Menu, X, Sparkles } from "lucide-react";
+import { Compass, Calendar, Menu, X, Sparkles } from "lucide-react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +12,6 @@ export default function Navbar() {
   const navLinks = [
     { name: "Explore", href: "/", icon: Compass },
     { name: "Open Trips", href: "/#open-trips", icon: Calendar },
-    { name: "Admin Dashboard", href: "/admin", icon: ShieldAlert },
   ];
 
   return (
